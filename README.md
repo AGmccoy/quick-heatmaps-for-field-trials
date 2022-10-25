@@ -1,6 +1,8 @@
 # quick-heatmaps-for-field-trials
 produces heatmaps for each variable within a dataset to get a quick look at field trials
 
+Example data is from a previous published study and can be found here https://github.com/AGmccoy/2018-2019-Phytophthora-sojae-multi-state-field-trial
+
 Mainly to just get a look at everything in your field trial quickly. I used 'openxlsx' to bring in multiple datasets at once and wrote the code so that it could be used in this manner on an excel datafile containing many sheets (each a different trial) to produce heatmaps. Should be relatively stable code, even though it wasnt written in base R.
 
 Very minimal tweaking to this code will be needed by users to begin producing their heatmaps. The code is annotated and should be easy to follow.
