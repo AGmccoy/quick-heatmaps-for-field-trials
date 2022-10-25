@@ -1,0 +1,55 @@
+---
+title: "automatic heatmaps for field trials"
+author: "Austin McCoy"
+date: "10/25/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(openxlsx)
+
+
+```
+
+
+```{r}
+#Phytophthora_field_data <- read_excel("Phytophthora field data.xlsx")
+
+
+path_to_file <- "Phytophthora field data.xlsx" # path to the file with all the data in it
+sheet_names <- openxlsx::getSheetNames(path_to_file) # extracts all sheet names (trial names)
+phytophthora_field_data <- lapply(sheet_names, openxlsx::read.xlsx, xlsxFile=path_to_file, na.strings=".") # changes all "." to "NA"
+names(phytophthora_field_data) <- sheet_names # naming datasets by sheet name (trial name)
+
+phytophthora_field_data <- mapply(cbind, phytophthora_field_data, "Study"=sheet_names, SIMPLIFY = F) # adding column "Study" to each dataset denoting the trails data we are looking at.
+phytophthora_field_data <- mapply(relocate, phytophthora_field_data, MoreArgs = list("Study")) # moving Study to first column
+
+phytophthora_field_data 
+
+```
+
+heatmap function, you only need to change "Phytophthora_field_data" within "mapply()" to your data and it should run. Make sure in your file the column denoting "Pass" and "Range" are spelled correctly. Here is data from the 2018/2019 Phytophthora sojae field trial data (Michigan)
+```{r}
+heatmap_funct <- function(x){
+  
+  for (i in 10:ncol(x)) { # i = columns, making heatmaps for columns 10-n, n being the number of columns the dataset has
+  
+ p <- ggplot(x, aes(Pass, Range, fill= get(colnames(x)[i]))) + # indicating the data, x-axis (Pass) and y-axis (Range) and what data to populate (fill = get(colnames(x)[i])))
+  geom_tile() + # this makes it a heatmap and not barchart, dot plot, etc
+  geom_text(aes(label = round(get(colnames(x)[i]), 1)), colour="black", size=1.5) + # adding the numeric values to our heatmap, rounding them to 1 decimal point, coloring the text black
+  scale_fill_distiller(palette = "Greens", direction = 1) + # making the heatmap tiles green hues, low values will be lighter colored, higher values will be lighter colors (direction=1))
+      ggtitle(x$Study, subtitle = colnames(x)[i]) # adding a title(study name) and subtitle (variable name) to our plots so they are easily identifiable to readers/customers/etc.
+
+    
+  ggsave(p, file=paste(x$Study[i], colnames(x)[i], ".png", sep=" "), width = 14, height = 10, units = "cm", path = 'phytophthora heatmap output/') # saving each of our plots. file=paste() is naming each of these .png files ("Study"+"column name".png) for easy digital ID. "path =" allows you to select WHERE you want these plots saved. I have saved them to a file in my working directory named "phytophthora heatmap output" to keep my working directory tidy, you may want to do the same, up to you!
+
+}
+
+}
+
+mapply(heatmap_funct, phytophthora_field_data) # mapply applies this function to every sheet (dataset), and begins writing these graphics to the working directory or a location specified by "path =" in the above for loop (ggsave()).
+
+
+```
